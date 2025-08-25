@@ -5,7 +5,6 @@ import com.anoushka.alumni_linkedin_searcher.model.AlumniProfile;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -16,7 +15,6 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class PhantomBusterService {
     private static final Logger log = LoggerFactory.getLogger(PhantomBusterService.class);
     private final RestTemplate restTemplate = new RestTemplate();
