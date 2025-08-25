@@ -21,6 +21,11 @@ public class AlumniService {
     private final PhantomBusterService phantomBusterService;
     private final AlumniProfileRepository alumniProfileRepository;
 
+    public AlumniService(PhantomBusterService phantomBusterService, AlumniProfileRepository alumniProfileRepository) {
+        this.phantomBusterService = phantomBusterService;
+        this.alumniProfileRepository = alumniProfileRepository;
+    }
+
     //Fetches alumni from PhantomBuster API, saves them into DB, and returns them
     public ApiResponse searchAndSaveAlumniProfiles(AlumniSearchRequest request){
         log.info("Searching alumni for university={}, designation={}, passoutYear={}",
