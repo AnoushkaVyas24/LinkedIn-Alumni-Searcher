@@ -37,7 +37,6 @@ public class AlumniService {
     }
 
     //Retrieves all saved alumni from database
-
     public ApiResponse getAllAlumniProfiles(){
         List<AlumniProfile> alumniProfiles = alumniProfileRepository.findAll();
         return new ApiResponse("success", alumniProfiles);
