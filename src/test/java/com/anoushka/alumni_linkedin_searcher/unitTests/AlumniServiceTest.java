@@ -70,14 +70,19 @@ public class AlumniServiceTest {
         //Call Service:
         ApiResponse response = alumniService.searchAndSaveAlumniProfiles(request);
 
+        // Assert (response checks)
+        assertNotNull(response);
+        assertEquals(200, response.getStatus());
+
         //Extract list from response:
         @SuppressWarnings("unchecked")
-                List<AlumniProfile> result = (List<AlumniProfile>) response.getData();
+        List<AlumniProfile> result = (List<AlumniProfile>) response.getData();
 
         // Verify
         assertNotNull(result);
         assertEquals(2, result.size());
         assertEquals("John Doe", result.get(0).getName());
+        assertEquals("Jane Smith", result.get(1).getName());
         verify(phantomBusterService, times(1)).fetchAlumniProfiles(any(AlumniSearchRequest.class));
         verify(alumniProfileRepository, times(1)).saveAll(mockProfiles);
     }
