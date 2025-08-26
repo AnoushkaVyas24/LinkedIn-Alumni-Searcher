@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.hamcrest.Matchers.is;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -34,11 +35,18 @@ public class AlumniIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                // top-level API response fields
                 .andExpect(jsonPath("$.status").value("success"))
                 .andExpect(jsonPath("$.data").isArray())
-                // validate that returned profiles contain expected fields
                 .andExpect(jsonPath("$.data[0].name").exists())
                 .andExpect(jsonPath("$.data[0].university").value("University of XYZ"));
+    }
+
+    //Integration test for GET /api/alumni/all
+    @Test
+    void testGetSavedAlumniProfiles() throws Exception {
+        mockMvc.perform(get("/api/alumni/all"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status", is("success")))
+                .andExpect(jsonPath("$.data").isArray());
     }
 };

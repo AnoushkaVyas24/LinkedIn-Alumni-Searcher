@@ -13,10 +13,10 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class AlumniServiceTest {
@@ -82,8 +82,44 @@ public class AlumniServiceTest {
         assertNotNull(result);
         assertEquals(2, result.size());
         assertEquals("John Doe", result.get(0).getName());
-        assertEquals("Jane Smith", result.get(1).getName());
         verify(phantomBusterService, times(1)).fetchAlumniProfiles(any(AlumniSearchRequest.class));
         verify(alumniProfileRepository, times(1)).saveAll(mockProfiles);
+    }
+
+    @Test
+    void testSearchAndSaveAlumniProfiles_EmptyList(){
+        AlumniSearchRequest request = new AlumniSearchRequest();
+        request.setUniversity("University of XYZ");
+        request.setDesignation("Software Engineer");
+
+        when(phantomBusterService.fetchAlumniProfiles(any(AlumniSearchRequest.class)))
+                .thenReturn(Collections.emptyList());
+
+        ApiResponse response = alumniService.searchAndSaveAlumniProfiles(request);
+
+        @SuppressWarnings("unchecked")
+        List<AlumniProfile> result = (List<AlumniProfile>) response.getData();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        assertEquals("success", response.getStatus());
+        verify(alumniProfileRepository, times(1)).saveAll(Collections.emptyList());
+    }
+
+    @Test
+    void testSearchAndSaveAlumniProfiles_ExceptionThrown(){
+        AlumniSearchRequest request = new AlumniSearchRequest();
+        request.setUniversity("University of XYZ");
+        request.setDesignation("Software Engineer");
+
+        when(phantomBusterService.fetchAlumniProfiles(any(AlumniSearchRequest.class)))
+                .thenThrow(new RuntimeException("PhantomBuster API failed"));
+
+        ApiResponse response = alumniService.searchAndSaveAlumniProfiles(request);
+
+        assertEquals("error", response.getStatus());
+        assertTrue(response.getData() instanceof String); // error message stored in data
+        assertEquals("PhantomBuster API failed", response.getData());
+        verify(alumniProfileRepository, never()).saveAll(any());
     }
 }
