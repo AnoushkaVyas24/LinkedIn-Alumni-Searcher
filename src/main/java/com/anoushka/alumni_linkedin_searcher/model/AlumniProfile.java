@@ -20,7 +20,7 @@ public class AlumniProfile {
     @Column(nullable = false)
     private String name;
 
-    @Column(name = "current_role")
+    @Column(name = "role")
     private String currentRole;
 
     private String university;
