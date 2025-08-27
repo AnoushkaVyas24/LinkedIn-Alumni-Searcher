@@ -1,16 +1,12 @@
 package com.anoushka.alumni_linkedin_searcher.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 @Data
-public class ApiResponse {
+public class ApiResponse<T> {
     private String status;
-    private Object data;
-
-    public ApiResponse(String status, Object data) {
-        this.status = status;
-        this.data = data;
-    }
+    private T data;
 
     public ApiResponse() {
     }
@@ -23,11 +19,16 @@ public class ApiResponse {
         this.status = status;
     }
 
-    public Object getData() {
+    public T getData() {
         return data;
     }
 
-    public void setData(Object data) {
+    public void setData(T data) {
+        this.data = data;
+    }
+
+    public ApiResponse(String status, T data) {
+        this.status = status;
         this.data = data;
     }
 }

@@ -2,10 +2,8 @@ package com.anoushka.alumni_linkedin_searcher.model;
 
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "alumni_profiles")
