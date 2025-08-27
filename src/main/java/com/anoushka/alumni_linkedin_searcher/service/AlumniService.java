@@ -19,13 +19,14 @@ public class AlumniService {
     private final PhantomBusterService phantomBusterService;
     private final AlumniProfileRepository alumniProfileRepository;
 
+    //constructor injection
     public AlumniService(PhantomBusterService phantomBusterService, AlumniProfileRepository alumniProfileRepository) {
         this.phantomBusterService = phantomBusterService;
         this.alumniProfileRepository = alumniProfileRepository;
     }
 
     //Fetches alumni from PhantomBuster API, saves them into DB, and returns them
-    public ApiResponse searchAndSaveAlumniProfiles(AlumniSearchRequest request){
+    public List<AlumniProfile> searchAndSaveAlumniProfiles(AlumniSearchRequest request){
         log.info("Searching alumni for university={}, designation={}, passoutYear={}",
                 request.getUniversity(), request.getDesignation(), request.getPassoutYear());
 
@@ -33,15 +34,11 @@ public class AlumniService {
         List<AlumniProfile> fetchedProfiles = phantomBusterService.fetchAlumniProfiles(request);
 
         // 2. Save to DB
-        alumniProfileRepository.saveAll(fetchedProfiles);
-
-        // 3. Return wrapped response
-        return new ApiResponse("success", fetchedProfiles);
+        return alumniProfileRepository.saveAll(fetchedProfiles);
     }
 
     //Retrieves all saved alumni from database
-    public ApiResponse getAllAlumniProfiles(){
-        List<AlumniProfile> alumniProfiles = alumniProfileRepository.findAll();
-        return new ApiResponse("success", alumniProfiles);
+    public List<AlumniProfile> getAllAlumniProfiles(){
+        return alumniProfileRepository.findAll();
     }
 }

@@ -19,11 +19,10 @@ import java.util.List;
 public class PhantomBusterService {
     private static final Logger log = LoggerFactory.getLogger(PhantomBusterService.class);
     private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public PhantomBusterService(RestTemplate restTemplate, ObjectMapper objectMapper) {
+    public PhantomBusterService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
-        this.objectMapper = objectMapper;
     }
 
     @Value("${phantombuster.api.key}")
@@ -33,46 +32,42 @@ public class PhantomBusterService {
     private String apiUrl;
 
     //Calls PhantomBuster API with given input and returns alumni profiles
-    public List<AlumniProfile> fetchAlumniProfiles(AlumniSearchRequest request){
+    public List<AlumniProfile> fetchAlumniProfiles(AlumniSearchRequest request) {
+        List<AlumniProfile> profiles = new ArrayList<>();
+
         try {
-            //build input payload:
-            String payload = String.format(
-                    "{ \"university\" : \"%s\", \"designation\": \"%s\", \"passoutYear\": %s }",
-                    request.getUniversity(),
-                    request.getDesignation(),
-                    request.getPassoutYear() != null ? request.getPassoutYear() : "null"
-            );
+            // Build query params
+            String url = apiUrl + "?university=" + request.getUniversity()
+                    + "&designation=" + request.getDesignation()
+                    + (request.getPassoutYear() != null ? "&passoutYear=" + request.getPassoutYear() : "");
 
-            //make request:
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("X-Phantombuster-Key-1", apiKey);
-            headers.set("Content-Type", "application/json");
+            log.info("Calling PhantomBuster API: {}", url);
 
-            HttpEntity<String> httpEntity = new HttpEntity<>(payload, headers);
-            var response = restTemplate.postForEntity(apiUrl, httpEntity, String.class);
+            // Make API call
+            String response = restTemplate.getForObject(url, String.class);
 
-            //Parse JSON response:
-            JsonNode root = objectMapper.readTree(response.getBody());
-            List<AlumniProfile> results = new ArrayList<>();
+            // Parse JSON
+            JsonNode root = objectMapper.readTree(response);
+            JsonNode data = root.path("data"); // adjust based on PhantomBuster response
 
-            //Adjust parsing depending on PhantomBuster’s actual JSON structure:
-            for(JsonNode node: root.path("data")){
-                AlumniProfile alumni = AlumniProfile.builder()
-                        .name(node.path("name").asText())
-                        .currentRole(node.path("currentRole").asText())
-                        .university(node.path("university").asText())
-                        .location(node.path("location").asText())
-                        .linkedinHeadline(node.path("linkedinHeadline").asText())
-                        .passoutYear(node.path("passoutYear").isInt() ? node.path("passoutYear").asInt() : null)
-                        .build();
-
-                results.add(alumni);
+            for (JsonNode node : data) {
+                AlumniProfile alumni = new AlumniProfile();
+                alumni.setName(node.path("name").asText());
+                alumni.setCurrentRole(node.path("currentRole").asText());
+                alumni.setUniversity(node.path("university").asText());
+                alumni.setLocation(node.path("location").asText());
+                alumni.setLinkedinHeadline(node.path("linkedinHeadline").asText());
+                if (node.has("passoutYear")) {
+                    alumni.setPassoutYear(node.path("passoutYear").asInt());
+                }
+                profiles.add(alumni);
             }
 
-            return results;
         } catch (Exception e) {
-            log.error("PhantomBuster API call failed", e);
-            throw new RuntimeException("Failed to fetch alumni profiles from PhantomBuster", e);
+            log.error("Error calling PhantomBuster API", e);
         }
+
+        return profiles;
     }
+
 }

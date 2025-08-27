@@ -35,91 +35,71 @@ public class AlumniServiceTest {
     }
 
     @Test
-    void testSearchAndSaveAlumniProfiles(){
-        //create request
-        AlumniSearchRequest request = new AlumniSearchRequest();
-        request.setUniversity("University of XYZ");
-        request.setDesignation("Software Engineer");
-        request.setPassoutYear(2020);
+    void testSearchAndSaveAlumniProfiles() {
+        AlumniSearchRequest request = new AlumniSearchRequest("University of XYZ", "Software Engineer", 2020);
 
-        //create mock profiles
-        AlumniProfile p1 = new AlumniProfile();
-        p1.setName("John Doe");
-        p1.setCurrentRole("Software Engineer");
-        p1.setUniversity("University of XYZ");
-        p1.setLocation("New York, NY");
-        p1.setLinkedinHeadline("Passionate Software Engineer");
-        p1.setPassoutYear(2020);
+        AlumniProfile p1 = AlumniProfile.builder()
+                .name("John Doe")
+                .currentRole("Software Engineer")
+                .university("University of XYZ")
+                .location("New York, NY")
+                .linkedinHeadline("Passionate Software Engineer")
+                .passoutYear(2020)
+                .build();
 
-        AlumniProfile p2 = new AlumniProfile();
-        p2.setName("Jane Smith");
-        p2.setCurrentRole("Data Scientist");
-        p2.setUniversity("University of XYZ");
-        p2.setLocation("San Francisco, CA");
-        p2.setLinkedinHeadline("AI Enthusiast");
-        p2.setPassoutYear(2019);
+        AlumniProfile p2 = AlumniProfile.builder()
+                .name("Jane Smith")
+                .currentRole("Data Scientist")
+                .university("University of XYZ")
+                .location("San Francisco, CA")
+                .linkedinHeadline("AI Enthusiast")
+                .passoutYear(2019)
+                .build();
 
-        List<AlumniProfile> mockProfiles = Arrays.asList(p1, p2);
+        List<AlumniProfile> mockProfiles = List.of(p1, p2);
 
-        //Mock phantombuster api response:
-        when(phantomBusterService.fetchAlumniProfiles(any(AlumniSearchRequest.class))).thenReturn(mockProfiles);
-
-        //Mock Database save:
+        when(phantomBusterService.fetchAlumniProfiles(any(AlumniSearchRequest.class)))
+                .thenReturn(mockProfiles);
         when(alumniProfileRepository.saveAll(mockProfiles)).thenReturn(mockProfiles);
 
-        //Call Service:
-        ApiResponse response = alumniService.searchAndSaveAlumniProfiles(request);
+        List<AlumniProfile> result = alumniService.searchAndSaveAlumniProfiles(request);
 
-        // Assert (response checks)
-        assertNotNull(response);
-        assertEquals(200, response.getStatus());
-
-        //Extract list from response:
-        @SuppressWarnings("unchecked")
-        List<AlumniProfile> result = (List<AlumniProfile>) response.getData();
-
-        // Verify
         assertNotNull(result);
         assertEquals(2, result.size());
         assertEquals("John Doe", result.get(0).getName());
+
         verify(phantomBusterService, times(1)).fetchAlumniProfiles(any(AlumniSearchRequest.class));
         verify(alumniProfileRepository, times(1)).saveAll(mockProfiles);
     }
 
     @Test
-    void testSearchAndSaveAlumniProfiles_EmptyList(){
-        AlumniSearchRequest request = new AlumniSearchRequest();
-        request.setUniversity("University of XYZ");
-        request.setDesignation("Software Engineer");
+    void testSearchAndSaveAlumniProfiles_EmptyList() {
+        AlumniSearchRequest request = new AlumniSearchRequest("University of XYZ", "Software Engineer", null);
 
         when(phantomBusterService.fetchAlumniProfiles(any(AlumniSearchRequest.class)))
                 .thenReturn(Collections.emptyList());
 
-        ApiResponse response = alumniService.searchAndSaveAlumniProfiles(request);
+        when(alumniProfileRepository.saveAll(Collections.emptyList())).thenReturn(Collections.emptyList());
 
-        @SuppressWarnings("unchecked")
-        List<AlumniProfile> result = (List<AlumniProfile>) response.getData();
+        List<AlumniProfile> result = alumniService.searchAndSaveAlumniProfiles(request);
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
-        assertEquals("success", response.getStatus());
+
+        verify(phantomBusterService, times(1)).fetchAlumniProfiles(any(AlumniSearchRequest.class));
         verify(alumniProfileRepository, times(1)).saveAll(Collections.emptyList());
     }
 
     @Test
-    void testSearchAndSaveAlumniProfiles_ExceptionThrown(){
-        AlumniSearchRequest request = new AlumniSearchRequest();
-        request.setUniversity("University of XYZ");
-        request.setDesignation("Software Engineer");
+    void testSearchAndSaveAlumniProfiles_ExceptionThrown() {
+        AlumniSearchRequest request = new AlumniSearchRequest("University of XYZ", "Software Engineer", null);
 
         when(phantomBusterService.fetchAlumniProfiles(any(AlumniSearchRequest.class)))
                 .thenThrow(new RuntimeException("PhantomBuster API failed"));
 
-        ApiResponse response = alumniService.searchAndSaveAlumniProfiles(request);
+        assertThrows(RuntimeException.class,
+                () -> alumniService.searchAndSaveAlumniProfiles(request));
 
-        assertEquals("error", response.getStatus());
-        assertTrue(response.getData() instanceof String); // error message stored in data
-        assertEquals("PhantomBuster API failed", response.getData());
         verify(alumniProfileRepository, never()).saveAll(any());
     }
 }

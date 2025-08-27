@@ -1,12 +1,14 @@
 package com.anoushka.alumni_linkedin_searcher.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class AlumniSearchRequest {
+    @NotBlank(message = "University is required")
     private String university;
+
+    @NotBlank(message = "Designation is required")
     private String designation;
     private Integer passoutYear;
 

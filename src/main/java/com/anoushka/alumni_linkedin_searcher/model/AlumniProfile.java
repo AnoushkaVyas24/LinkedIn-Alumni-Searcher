@@ -10,8 +10,6 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "alumni_profiles")
 @Data   // Lombok: generates getters, setters, toString, equals, hashCode
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 public class AlumniProfile {
 

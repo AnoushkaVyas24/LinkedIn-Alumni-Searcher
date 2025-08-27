@@ -3,8 +3,6 @@ package com.anoushka.alumni_linkedin_searcher.dto;
 import lombok.*;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class ApiResponse {
     private String status;
     private Object data;
