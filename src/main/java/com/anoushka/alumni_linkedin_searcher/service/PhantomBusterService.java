@@ -12,6 +12,9 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.beans.factory.annotation.Value;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,52 +34,50 @@ public class PhantomBusterService {
     private String apiKey;
 
     @Value("${phantombuster.api.url}")
-    private String apiUrl;
+    private String apiUrl; // should be https://api.phantombuster.com/api/v2/agents/launch
 
-    //Calls PhantomBuster API with given input and returns alumni profiles
+    @Value("${phantombuster.agent.id}")
+    private String agentId;
+
+    @Value("${phantombuster.session.cookie}")
+    private String sessionCookie;
+
+    @Value("${phantombuster.user.agent}")
+    private String userAgent;
+
     public List<AlumniProfile> fetchAlumniProfiles(AlumniSearchRequest request) {
         List<AlumniProfile> profiles = new ArrayList<>();
 
         try {
-            // Prepare headers
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.set("X-Phantombuster-Key-1", apiKey);
 
-            // Prepare input body for the phantom
-            Map<String, Object> input = new HashMap<>();
-            input.put("university", request.getUniversity());
-            input.put("designation", request.getDesignation());
-            if (request.getPassoutYear() != null) {
-                input.put("passoutYear", request.getPassoutYear());
-            }
+            // ✅ Use keywords, not LinkedIn URL
+            StringBuilder keywords = new StringBuilder();
+            if (request.getDesignation() != null) keywords.append(request.getDesignation()).append(" ");
+            if (request.getUniversity() != null) keywords.append(request.getUniversity()).append(" ");
+            if (request.getPassoutYear() != null) keywords.append(request.getPassoutYear());
+
+            String searchQuery = keywords.toString().trim();
+
+            // ✅ Body must have "argument" (singular), not "arguments"
+            Map<String, Object> argument = new HashMap<>();
+            argument.put("search", searchQuery);
+            argument.put("sessionCookie", sessionCookie);
+            argument.put("userAgent", userAgent);
+            argument.put("numberOfProfiles", 20);
 
             Map<String, Object> body = new HashMap<>();
-            body.put("argument", input); // Phantom expects "argument" JSON field
+            body.put("id", agentId);
+            body.put("argument", argument);
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
 
-            log.info("Calling PhantomBuster API: {}", apiUrl);
+            log.info("Launching Phantom with query: {}", searchQuery);
 
-            // Call API
             String response = restTemplate.postForObject(apiUrl, entity, String.class);
-
-            // Parse JSON
-            JsonNode root = objectMapper.readTree(response);
-            JsonNode data = root.path("data"); // adjust based on actual PhantomBuster output
-
-            for (JsonNode node : data) {
-                AlumniProfile alumni = new AlumniProfile();
-                alumni.setName(node.path("name").asText(null));
-                alumni.setCurrentRole(node.path("currentRole").asText(null));
-                alumni.setUniversity(node.path("university").asText(null));
-                alumni.setLocation(node.path("location").asText(null));
-                alumni.setLinkedinHeadline(node.path("linkedinHeadline").asText(null));
-                if (node.has("passoutYear")) {
-                    alumni.setPassoutYear(node.path("passoutYear").asInt());
-                }
-                profiles.add(alumni);
-            }
+            log.info("Phantom launch response: {}", response);
 
         } catch (Exception e) {
             log.error("Error calling PhantomBuster API", e);
@@ -84,5 +85,4 @@ public class PhantomBusterService {
 
         return profiles;
     }
-
 }
