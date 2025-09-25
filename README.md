@@ -71,6 +71,21 @@ location	VARCHAR	Current location
 linkedin_headline	VARCHAR	LinkedIn headline
 passout_year	INT	Graduation year
 
+📖 Example API Call
+GET /api/alumni?university=Acropolis&year=2022&designation=Software+Engineer
+
+
+Response:
+[
+  {
+    "name": "John Doe",
+    "university": "Acropolis",
+    "designation": "Software Engineer",
+    "year": 2022,
+    "profileUrl": "https://linkedin.com/in/johndoe"
+  }
+]
+
 *Usage*
 Start the Spring Boot application.
 
