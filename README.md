@@ -71,7 +71,7 @@ location	VARCHAR	Current location
 linkedin_headline	VARCHAR	LinkedIn headline
 passout_year	INT	Graduation year
 
-📖 Example API Call
+📖 Example API Call:
 GET /api/alumni?university=Acropolis&year=2022&designation=Software+Engineer
 
 
